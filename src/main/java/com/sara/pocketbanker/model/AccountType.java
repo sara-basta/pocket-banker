@@ -1,4 +1,4 @@
-package com.sara.pocketbanker.entity;
+package com.sara.pocketbanker.model;
 
 
 public enum AccountType {

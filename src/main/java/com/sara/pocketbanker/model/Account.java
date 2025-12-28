@@ -1,4 +1,4 @@
-package com.sara.pocketbanker.entity;
+package com.sara.pocketbanker.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

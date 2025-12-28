@@ -1,21 +1,29 @@
 package com.sara.pocketbanker.service;
 
-import com.sara.pocketbanker.entity.Account;
-import com.sara.pocketbanker.entity.AccountType;
+import com.sara.pocketbanker.model.Account;
+import com.sara.pocketbanker.model.AccountType;
+import com.sara.pocketbanker.model.Transaction;
+import com.sara.pocketbanker.model.TransactionType;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class AccountService {
 
+    private final TransactionService transactionService;
     List<Account> accounts = new ArrayList<>(List.of(
             new Account("A12","Sara",20000, AccountType.PERSONAL, LocalDate.now(),true,new ArrayList<>()),
             new Account("A13","Basta",10000, AccountType.SAVINGS, LocalDate.now(),true,new ArrayList<>()),
             new Account("A14","Malika",26000, AccountType.PERSONAL, LocalDate.now(),true,new ArrayList<>())
     ));
+
+    public AccountService(TransactionService transactionService) {
+        this.transactionService = transactionService;
+    }
 
     public Account getAccountDetails(String id) {
         return accounts.stream()
@@ -39,6 +47,14 @@ public class AccountService {
             throw new RuntimeException("deposit amount must be positive");
         }
         account.setBalance(account.getBalance()+deposit);
+        Transaction tr = transactionService.recordTransaction(
+                id,
+                TransactionType.DEPOSIT,
+                deposit,
+                "Deposit"
+        );
+        account.getTransactions().add(tr);
+
         System.out.println("Money deposited with success!");
     }
 
@@ -48,6 +64,14 @@ public class AccountService {
             throw new RuntimeException("withdraw amount invalid or balance insufficient");
         }
         account.setBalance(account.getBalance()-withdraw);
+        Transaction tr = transactionService.recordTransaction(
+                id,
+                TransactionType.WITHDRAWAL,
+                withdraw,
+                "Withdraw"
+        );
+        account.getTransactions().add(tr);
+
         System.out.println("Money withdrawn with success!");
     }
 }

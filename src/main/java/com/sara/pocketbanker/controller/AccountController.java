@@ -1,6 +1,6 @@
 package com.sara.pocketbanker.controller;
 
-import com.sara.pocketbanker.entity.Account;
+import com.sara.pocketbanker.model.Account;
 import com.sara.pocketbanker.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
