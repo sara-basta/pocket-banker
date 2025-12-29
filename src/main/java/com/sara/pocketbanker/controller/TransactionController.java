@@ -18,9 +18,13 @@ public class TransactionController {
         this.transactionService=transactionService;
     }
 
-//    GET /transactions/{accountId} → List all transactions for an account
-    @GetMapping("/transactions/{accountId}")
+    @GetMapping("/accounts/{accountId}/transactions")
     List<Transaction> transactionsByAccount(@PathVariable String accountId){
         return transactionService.transactionsByAccount(accountId);
+    }
+
+    @GetMapping("/transactions/{id}")
+    Transaction transactionsById(@PathVariable String id){
+        return transactionService.transactionsById(id);
     }
 }

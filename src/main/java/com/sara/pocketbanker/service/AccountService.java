@@ -1,5 +1,6 @@
 package com.sara.pocketbanker.service;
 
+import com.sara.pocketbanker.exception.ResourceNotFoundException;
 import com.sara.pocketbanker.model.Account;
 import com.sara.pocketbanker.model.AccountType;
 import com.sara.pocketbanker.model.Transaction;
@@ -7,7 +8,6 @@ import com.sara.pocketbanker.model.TransactionType;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +29,7 @@ public class AccountService {
         return accounts.stream()
                 .filter(acc -> acc.getAccountNumber().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("No account found with this id!"));
+                .orElseThrow(() -> new ResourceNotFoundException("No account found with this id: "+id));
     }
 
     public void createAccount(Account account) {
@@ -44,7 +44,7 @@ public class AccountService {
     public void depositMoney(String id, double deposit) {
         Account account = getAccountDetails(id);
         if(deposit < 0) {
-            throw new RuntimeException("deposit amount must be positive");
+            throw new IllegalArgumentException("deposit amount must be positive");
         }
         account.setBalance(account.getBalance()+deposit);
         Transaction tr = transactionService.recordTransaction(
@@ -61,7 +61,7 @@ public class AccountService {
     public void withdrawMoney(String id, double withdraw) {
         Account account = getAccountDetails(id);
         if(withdraw > account.getBalance() || withdraw < 0) {
-            throw new RuntimeException("withdraw amount invalid or balance insufficient");
+            throw new IllegalArgumentException("withdraw amount invalid or balance insufficient");
         }
         account.setBalance(account.getBalance()-withdraw);
         Transaction tr = transactionService.recordTransaction(

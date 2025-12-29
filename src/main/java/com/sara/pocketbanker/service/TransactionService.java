@@ -1,9 +1,8 @@
 package com.sara.pocketbanker.service;
 
-import com.sara.pocketbanker.model.Account;
+import com.sara.pocketbanker.exception.ResourceNotFoundException;
 import com.sara.pocketbanker.model.Transaction;
 import com.sara.pocketbanker.model.TransactionType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -34,4 +33,10 @@ public class TransactionService {
                 .toList();
     }
 
+    public Transaction transactionsById(String id) {
+        return transactions.stream()
+                .filter(tr -> tr.getTransactionId().equals(id))
+                .findFirst()
+                .orElseThrow(()-> new ResourceNotFoundException("There is no transaction with this id: "+id));
+    }
 }

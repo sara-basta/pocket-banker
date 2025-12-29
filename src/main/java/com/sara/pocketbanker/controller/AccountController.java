@@ -15,25 +15,21 @@ public class AccountController {
         this.accountService = account;
     }
 
-//    GET /accounts/{id} → Get account details
     @GetMapping("/accounts/{id}")
     Account getAccountDetails(@PathVariable String id){
         return accountService.getAccountDetails(id);
     }
 
-//    POST /accounts → Create a new account
     @PostMapping("/accounts")
     void createAccount(@RequestBody Account account){
         accountService.createAccount(account);
     }
 
-//    PUT /accounts/{id}/deposit → Deposit money
     @PutMapping("/accounts/{id}/deposit")
     void depositMoney(@PathVariable String id, @RequestBody double deposit){
         accountService.depositMoney(id,deposit);
     }
 
-//    PUT /accounts/{id}/withdraw → Withdraw money
     @PutMapping("/accounts/{id}/withdraw")
     void withdrawMoney(@PathVariable String id, @RequestBody double withdraw){
         accountService.withdrawMoney(id,withdraw);
