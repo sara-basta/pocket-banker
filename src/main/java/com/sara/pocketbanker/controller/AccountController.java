@@ -1,5 +1,6 @@
 package com.sara.pocketbanker.controller;
 
+import com.sara.pocketbanker.dto.response.AccountResponse;
 import com.sara.pocketbanker.model.Account;
 import com.sara.pocketbanker.service.AccountService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,7 @@ public class AccountController {
     }
 
     @GetMapping("/accounts/{id}")
-    Account getAccountDetails(@PathVariable String id){
+    AccountResponse getAccountDetails(@PathVariable String id){
         return accountService.getAccountDetails(id);
     }
 

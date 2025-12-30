@@ -1,5 +1,8 @@
 package com.sara.pocketbanker.service;
 
+
+import com.sara.pocketbanker.dto.response.AccountResponse;
+import com.sara.pocketbanker.dto.response.AccountResponseMapper;
 import com.sara.pocketbanker.exception.ResourceNotFoundException;
 import com.sara.pocketbanker.model.Account;
 import com.sara.pocketbanker.model.AccountType;
@@ -15,20 +18,23 @@ import java.util.List;
 public class AccountService {
 
     private final TransactionService transactionService;
+    private final AccountResponseMapper accountResponseMapper;
     List<Account> accounts = new ArrayList<>(List.of(
             new Account("A12","Sara",20000, AccountType.PERSONAL, LocalDate.now(),true,new ArrayList<>()),
             new Account("A13","Basta",10000, AccountType.SAVINGS, LocalDate.now(),true,new ArrayList<>()),
             new Account("A14","Malika",26000, AccountType.PERSONAL, LocalDate.now(),true,new ArrayList<>())
     ));
 
-    public AccountService(TransactionService transactionService) {
+    public AccountService(TransactionService transactionService, AccountResponseMapper accountResponseMapper) {
         this.transactionService = transactionService;
+        this.accountResponseMapper = accountResponseMapper;
     }
 
-    public Account getAccountDetails(String id) {
+    public AccountResponse getAccountDetails(String id) {
         return accounts.stream()
                 .filter(acc -> acc.getAccountNumber().equals(id))
                 .findFirst()
+                .map(accountResponseMapper)
                 .orElseThrow(() -> new ResourceNotFoundException("No account found with this id: "+id));
     }
 
@@ -42,7 +48,10 @@ public class AccountService {
     }
 
     public void depositMoney(String id, double deposit) {
-        Account account = getAccountDetails(id);
+        Account account = accounts.stream()
+                .filter(acc -> acc.getAccountNumber().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("No account found with this id: "+id));
         if(deposit < 0) {
             throw new IllegalArgumentException("deposit amount must be positive");
         }
@@ -59,8 +68,10 @@ public class AccountService {
     }
 
     public void withdrawMoney(String id, double withdraw) {
-        Account account = getAccountDetails(id);
-        if(withdraw > account.getBalance() || withdraw < 0) {
+        Account account = accounts.stream()
+                .filter(acc -> acc.getAccountNumber().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("No account found with this id: "+id));        if(withdraw > account.getBalance() || withdraw < 0) {
             throw new IllegalArgumentException("withdraw amount invalid or balance insufficient");
         }
         account.setBalance(account.getBalance()-withdraw);
