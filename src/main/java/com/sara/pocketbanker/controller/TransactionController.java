@@ -1,6 +1,7 @@
 package com.sara.pocketbanker.controller;
 
-import com.sara.pocketbanker.model.Transaction;
+import com.sara.pocketbanker.dto.response.TransactionResponseDTO;
+import com.sara.pocketbanker.entity.Transaction;
 import com.sara.pocketbanker.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +12,7 @@ import java.util.List;
 
 @RestController
 public class TransactionController {
-    TransactionService transactionService;
+    private final TransactionService transactionService;
 
     @Autowired
     TransactionController(TransactionService transactionService){
@@ -19,12 +20,18 @@ public class TransactionController {
     }
 
     @GetMapping("/accounts/{accountId}/transactions")
-    List<Transaction> transactionsByAccount(@PathVariable String accountId){
+    List<TransactionResponseDTO> transactionsByAccount(@PathVariable String accountId){
         return transactionService.transactionsByAccount(accountId);
     }
 
     @GetMapping("/transactions/{id}")
-    Transaction transactionsById(@PathVariable String id){
+    TransactionResponseDTO transactionsById(@PathVariable String id){
         return transactionService.transactionsById(id);
     }
+
+    @GetMapping("/transactions")
+    List<TransactionResponseDTO> getALlTransactions(){
+        return transactionService.getAllTransactions();
+    }
+
 }

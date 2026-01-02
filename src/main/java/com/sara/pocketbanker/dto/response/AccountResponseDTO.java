@@ -1,12 +1,12 @@
 package com.sara.pocketbanker.dto.response;
 
-import com.sara.pocketbanker.model.AccountType;
-import com.sara.pocketbanker.model.Transaction;
+import com.sara.pocketbanker.entity.AccountType;
+import com.sara.pocketbanker.entity.Transaction;
 
 
 import java.util.List;
 
-public record AccountResponse(
+public record AccountResponseDTO(
         String accountNumber,
         String accountHolderName,
         double balance,

@@ -1,13 +1,13 @@
 package com.sara.pocketbanker.service;
 
 
-import com.sara.pocketbanker.dto.response.AccountResponse;
+import com.sara.pocketbanker.dto.response.AccountResponseDTO;
 import com.sara.pocketbanker.dto.response.AccountResponseMapper;
 import com.sara.pocketbanker.exception.ResourceNotFoundException;
-import com.sara.pocketbanker.model.Account;
-import com.sara.pocketbanker.model.AccountType;
-import com.sara.pocketbanker.model.Transaction;
-import com.sara.pocketbanker.model.TransactionType;
+import com.sara.pocketbanker.entity.Account;
+import com.sara.pocketbanker.entity.AccountType;
+import com.sara.pocketbanker.entity.Transaction;
+import com.sara.pocketbanker.entity.TransactionType;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -20,9 +20,8 @@ public class AccountService {
     private final TransactionService transactionService;
     private final AccountResponseMapper accountResponseMapper;
     List<Account> accounts = new ArrayList<>(List.of(
-            new Account("A12","Sara",20000, AccountType.PERSONAL, LocalDate.now(),true,new ArrayList<>()),
-            new Account("A13","Basta",10000, AccountType.SAVINGS, LocalDate.now(),true,new ArrayList<>()),
-            new Account("A14","Malika",26000, AccountType.PERSONAL, LocalDate.now(),true,new ArrayList<>())
+            new Account("A1","Sara",20000, AccountType.PERSONAL, LocalDate.now(),true,new ArrayList<>()),
+            new Account("A2","Basta",10000, AccountType.SAVINGS, LocalDate.now(),true,new ArrayList<>())
     ));
 
     public AccountService(TransactionService transactionService, AccountResponseMapper accountResponseMapper) {
@@ -30,7 +29,7 @@ public class AccountService {
         this.accountResponseMapper = accountResponseMapper;
     }
 
-    public AccountResponse getAccountDetails(String id) {
+    public AccountResponseDTO getAccountDetails(String id) {
         return accounts.stream()
                 .filter(acc -> acc.getAccountNumber().equals(id))
                 .findFirst()
@@ -48,10 +47,7 @@ public class AccountService {
     }
 
     public void depositMoney(String id, double deposit) {
-        Account account = accounts.stream()
-                .filter(acc -> acc.getAccountNumber().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("No account found with this id: "+id));
+        Account account = getAccount(id);
         if(deposit < 0) {
             throw new IllegalArgumentException("deposit amount must be positive");
         }
@@ -68,10 +64,8 @@ public class AccountService {
     }
 
     public void withdrawMoney(String id, double withdraw) {
-        Account account = accounts.stream()
-                .filter(acc -> acc.getAccountNumber().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("No account found with this id: "+id));        if(withdraw > account.getBalance() || withdraw < 0) {
+        Account account = getAccount(id);
+        if(withdraw > account.getBalance() || withdraw < 0) {
             throw new IllegalArgumentException("withdraw amount invalid or balance insufficient");
         }
         account.setBalance(account.getBalance()-withdraw);
@@ -84,5 +78,43 @@ public class AccountService {
         account.getTransactions().add(tr);
 
         System.out.println("Money withdrawn with success!");
+    }
+
+    public Account getAccount(String id) {
+        return accounts.stream()
+                .filter(acc -> acc.getAccountNumber().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("No account found with this id: "+ id));
+    }
+
+    public void deleteAccount(String id) {
+        boolean deleted = accounts.removeIf(acc -> acc.getAccountNumber().equals(id));
+
+        if(!deleted){
+            throw new ResourceNotFoundException("No account found with this id: "+ id);
+        }
+    }
+
+    public void deleteTransaction(String accId, String trId) {
+        Account account = getAccount(accId);
+        List<Transaction> transactions = account.getTransactions();
+
+        boolean removed = transactions.removeIf(tr -> tr.getTransactionId().equals(trId));
+
+        boolean removedGlobal = transactionService.deleteTransactionEntity(trId);
+
+        if(!removed || !removedGlobal) {
+            throw  new ResourceNotFoundException("No transaction found for this account with this id : " + trId);
+        }
+    }
+
+    public List<AccountResponseDTO> getAllAccounts() {
+        return accounts.stream()
+                .map(accountResponseMapper)
+                .toList();
+    }
+
+    public String getNextAccountNumber() {
+        return "A" + (accounts.size() +1);
     }
 }
