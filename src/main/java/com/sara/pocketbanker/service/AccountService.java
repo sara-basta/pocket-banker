@@ -1,83 +1,95 @@
 package com.sara.pocketbanker.service;
 
 
+import com.sara.pocketbanker.dto.request.AccountRequestDTO;
+import com.sara.pocketbanker.dto.request.TransactionRequestDTO;
 import com.sara.pocketbanker.dto.response.AccountResponseDTO;
-import com.sara.pocketbanker.dto.response.AccountResponseMapper;
+import com.sara.pocketbanker.dto.response.TransactionResponseDTO;
 import com.sara.pocketbanker.exception.ResourceNotFoundException;
 import com.sara.pocketbanker.entity.Account;
 import com.sara.pocketbanker.entity.AccountType;
 import com.sara.pocketbanker.entity.Transaction;
 import com.sara.pocketbanker.entity.TransactionType;
+import com.sara.pocketbanker.mapper.AccountMapper;
+import com.sara.pocketbanker.mapper.TransactionMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class AccountService {
 
     private final TransactionService transactionService;
-    private final AccountResponseMapper accountResponseMapper;
+
+    // making the logger static so that all instances of AccountService share the same logger
+    private static final Logger log = LoggerFactory.getLogger(AccountService.class);
+
+
     List<Account> accounts = new ArrayList<>(List.of(
             new Account("A1","Sara",20000, AccountType.PERSONAL, LocalDate.now(),true,new ArrayList<>()),
             new Account("A2","Basta",10000, AccountType.SAVINGS, LocalDate.now(),true,new ArrayList<>())
     ));
 
-    public AccountService(TransactionService transactionService, AccountResponseMapper accountResponseMapper) {
+    public AccountService(TransactionService transactionService) {
         this.transactionService = transactionService;
-        this.accountResponseMapper = accountResponseMapper;
     }
 
     public AccountResponseDTO getAccountDetails(String id) {
         return accounts.stream()
                 .filter(acc -> acc.getAccountNumber().equals(id))
                 .findFirst()
-                .map(accountResponseMapper)
+                .map(AccountMapper::toResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("No account found with this id: "+id));
     }
 
-    public void createAccount(Account account) {
-        if(account.getBalance()<0){
-            System.out.println("Balance must be positive!");
-            return;
-        }
+    public AccountResponseDTO createAccount(AccountRequestDTO dto) {
+        Account account = AccountMapper.toEntity(dto);
+        account.setAccountNumber(getNextAccountNumber());
+
         accounts.add(account);
-        System.out.println("Account created with success!");
+
+        log.info("Account created successfully!");
+        return AccountMapper.toResponse(account);
     }
 
-    public void depositMoney(String id, double deposit) {
+    public TransactionResponseDTO depositMoney(String id, double deposit) {
         Account account = getAccount(id);
-        if(deposit < 0) {
-            throw new IllegalArgumentException("deposit amount must be positive");
-        }
         account.setBalance(account.getBalance()+deposit);
-        Transaction tr = transactionService.recordTransaction(
+        Transaction tr = transactionService.createTransaction(
                 id,
-                TransactionType.DEPOSIT,
-                deposit,
-                "Deposit"
+                new TransactionRequestDTO(TransactionType.DEPOSIT,
+                        deposit,
+                        "Deposit"
+                )
         );
         account.getTransactions().add(tr);
 
-        System.out.println("Money deposited with success!");
+        log.info("Money deposited: accountId={}, amount={}", id, deposit);
+        return TransactionMapper.toResponse(tr);
     }
 
-    public void withdrawMoney(String id, double withdraw) {
+    public TransactionResponseDTO withdrawMoney(String id, double withdraw) {
         Account account = getAccount(id);
-        if(withdraw > account.getBalance() || withdraw < 0) {
-            throw new IllegalArgumentException("withdraw amount invalid or balance insufficient");
+        if(withdraw > account.getBalance()) {
+            throw new IllegalArgumentException("Balance insufficient");
         }
         account.setBalance(account.getBalance()-withdraw);
-        Transaction tr = transactionService.recordTransaction(
+        Transaction tr = transactionService.createTransaction(
                 id,
-                TransactionType.WITHDRAWAL,
-                withdraw,
-                "Withdraw"
+                new TransactionRequestDTO(TransactionType.WITHDRAWAL,
+                        withdraw,
+                        "Withdraw"
+                )
         );
         account.getTransactions().add(tr);
 
-        System.out.println("Money withdrawn with success!");
+        log.info("Money withdrawn: accountId={}, amount={}",id, withdraw);
+        return TransactionMapper.toResponse(tr);
     }
 
     public Account getAccount(String id) {
@@ -110,11 +122,11 @@ public class AccountService {
 
     public List<AccountResponseDTO> getAllAccounts() {
         return accounts.stream()
-                .map(accountResponseMapper)
+                .map(AccountMapper::toResponse)
                 .toList();
     }
 
     public String getNextAccountNumber() {
-        return "A" + (accounts.size() +1);
+        return "A-" + UUID.randomUUID();
     }
 }

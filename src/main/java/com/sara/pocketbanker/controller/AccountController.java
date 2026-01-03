@@ -1,11 +1,16 @@
 package com.sara.pocketbanker.controller;
 
+import com.sara.pocketbanker.dto.request.AccountRequestDTO;
+import com.sara.pocketbanker.dto.request.MoneyOperationRequestDTO;
 import com.sara.pocketbanker.dto.response.AccountResponseDTO;
-import com.sara.pocketbanker.entity.Account;
+import com.sara.pocketbanker.dto.response.TransactionResponseDTO;
 import com.sara.pocketbanker.service.AccountService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.swing.text.html.parser.Entity;
 import java.util.List;
 
 
@@ -13,43 +18,46 @@ import java.util.List;
 public class AccountController {
     AccountService accountService;
 
-    @Autowired
     AccountController(AccountService account){
         this.accountService = account;
     }
 
     @GetMapping("/accounts/{id}")
-    AccountResponseDTO getAccountDetails(@PathVariable String id){
+    public AccountResponseDTO getAccountDetails(@PathVariable String id){
         return accountService.getAccountDetails(id);
     }
 
     @PostMapping("/accounts/add")
-    void createAccount(@RequestBody Account account){
-        accountService.createAccount(account);
+    public AccountResponseDTO createAccount(@RequestBody AccountRequestDTO dto){
+        return accountService.createAccount(dto);
     }
 
     @GetMapping("/accounts")
-    List<AccountResponseDTO> getAllAccounts(){
+    public List<AccountResponseDTO> getAllAccounts(){
         return accountService.getAllAccounts();
     }
 
     @PutMapping("/accounts/{id}/deposit")
-    void depositMoney(@PathVariable String id, @RequestBody double deposit){
-        accountService.depositMoney(id,deposit);
+    public ResponseEntity<TransactionResponseDTO> depositMoney(@PathVariable String id, @Valid @RequestBody MoneyOperationRequestDTO dto){
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(accountService.depositMoney(id, dto.amount()));
     }
 
     @PutMapping("/accounts/{id}/withdraw")
-    void withdrawMoney(@PathVariable String id, @RequestBody double withdraw){
-        accountService.withdrawMoney(id,withdraw);
+    public ResponseEntity<TransactionResponseDTO> withdrawMoney(@PathVariable String id, @Valid @RequestBody MoneyOperationRequestDTO dto){
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(accountService.withdrawMoney(id, dto.amount()));
     }
 
     @DeleteMapping("/accounts/{id}/delete")
-    void deleteAccount(@PathVariable String id){
+    public void deleteAccount(@PathVariable String id){
         accountService.deleteAccount(id);
     }
 
     @DeleteMapping("accounts/{accId}/transactions/{trId}/delete")
-    void deleteTransaction(@PathVariable String accId, @PathVariable String trId){
+    public void deleteTransaction(@PathVariable String accId, @PathVariable String trId){
         accountService.deleteTransaction(accId,trId);
     }
 }

@@ -1,35 +1,23 @@
 package com.sara.pocketbanker.service;
 
+import com.sara.pocketbanker.dto.request.TransactionRequestDTO;
 import com.sara.pocketbanker.dto.response.TransactionResponseDTO;
-import com.sara.pocketbanker.dto.response.TransactionResponseMapper;
 import com.sara.pocketbanker.exception.ResourceNotFoundException;
 import com.sara.pocketbanker.entity.Transaction;
-import com.sara.pocketbanker.entity.TransactionType;
+import com.sara.pocketbanker.mapper.TransactionMapper;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class TransactionService {
-    private final TransactionResponseMapper transactionResponseMapper;
     List<Transaction> transactions = new ArrayList<>();
 
-    public TransactionService(TransactionResponseMapper transactionResponseMapper) {
-        this.transactionResponseMapper = transactionResponseMapper;
-    }
-
-    public Transaction recordTransaction(String accountId,
-            TransactionType type, double amount, String description) {
-        Transaction tr = new Transaction(
-                getNextTransactionId(),
-                accountId,
-                type,
-                amount,
-                LocalDateTime.now(),
-                description
-        );
+    public Transaction createTransaction(String accountId, TransactionRequestDTO dto) {
+        Transaction tr = TransactionMapper.toEntity(dto, accountId);
+        tr.setTransactionId(getNextTransactionId());
         transactions.add(tr);
         return tr;
     }
@@ -37,21 +25,21 @@ public class TransactionService {
     public List<TransactionResponseDTO> transactionsByAccount(String accountId) {
         return transactions.stream()
                 .filter(tr -> tr.getAccountId().equals(accountId))
-                .map(transactionResponseMapper)
+                .map(TransactionMapper::toResponse)
                 .toList();
     }
 
     public TransactionResponseDTO transactionsById(String id) {
         return transactions.stream()
                 .filter(tr -> tr.getTransactionId().equals(id))
-                .map(transactionResponseMapper)
+                .map(TransactionMapper::toResponse)
                 .findFirst()
                 .orElseThrow(()-> new ResourceNotFoundException("There is no transaction with this id: "+id));
     }
 
     public List<TransactionResponseDTO> getAllTransactions() {
         return transactions.stream()
-                .map(transactionResponseMapper)
+                .map(TransactionMapper::toResponse)
                 .toList();
     }
 
@@ -61,6 +49,7 @@ public class TransactionService {
     }
 
     public String getNextTransactionId() {
-        return "T" + (transactions.size()+1);
+        return "T-" + UUID.randomUUID();
     }
+
 }
