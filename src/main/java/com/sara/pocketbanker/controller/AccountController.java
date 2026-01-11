@@ -10,13 +10,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.swing.text.html.parser.Entity;
 import java.util.List;
 
 
 @RestController
 public class AccountController {
-    AccountService accountService;
+    private final AccountService accountService;
 
     AccountController(AccountService account){
         this.accountService = account;
@@ -56,8 +55,4 @@ public class AccountController {
         accountService.deleteAccount(id);
     }
 
-    @DeleteMapping("accounts/{accId}/transactions/{trId}/delete")
-    public void deleteTransaction(@PathVariable String accId, @PathVariable String trId){
-        accountService.deleteTransaction(accId,trId);
-    }
 }

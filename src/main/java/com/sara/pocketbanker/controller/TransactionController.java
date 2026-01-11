@@ -11,8 +11,6 @@ import java.util.List;
 public class TransactionController {
     private final TransactionService transactionService;
 
-
-    @Autowired
     TransactionController(TransactionService transactionService){
         this.transactionService=transactionService;
     }
@@ -30,6 +28,11 @@ public class TransactionController {
     @GetMapping("/transactions")
     public List<TransactionResponseDTO> getALlTransactions(){
         return transactionService.getAllTransactions();
+    }
+
+    @DeleteMapping("transactions/{trId}/delete")
+    public void deleteTransaction(@PathVariable String trId){
+        transactionService.deleteTransaction(trId);
     }
 
 }

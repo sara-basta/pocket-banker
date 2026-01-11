@@ -8,10 +8,10 @@ import java.time.LocalDateTime;
 
 public final class TransactionMapper {
 
-    public static Transaction toEntity(TransactionRequestDTO dto, String accountId) {
+    public static Transaction toEntity(TransactionRequestDTO dto) {
         return new Transaction(
                 null,
-                accountId,
+                null,
                 dto.type(),
                 dto.amount(),
                 LocalDateTime.now(),
