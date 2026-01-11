@@ -11,6 +11,15 @@ Spring Boot application for managing bank accounts and transactions.
 ## Tech Stack
 Spring Boot 4.0.1 • JPA • H2 Database • Lombok • Swagger/OpenAPI
 
+### **Architecture**
+- **Controllers** - REST endpoints for accounts and transactions
+- **Services** - Business logic for account operations and transaction management
+- **Repositories** - JPA repositories for database access
+- **Entities** - JPA-mapped domain models (Account, Transaction)
+- **DTOs** - Data Transfer Objects for API request/response payloads
+- **Exception Handling** - Custom exceptions with global error handling
+
+
 ## API Endpoints
 
 ### Accounts
